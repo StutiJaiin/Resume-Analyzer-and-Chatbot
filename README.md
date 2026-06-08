@@ -9,23 +9,17 @@
 
 ## To Use the Chatbot (Phase 4)
 
-The chatbot uses the Claude API.
+The chatbot uses the Groq LLM API (Llama 3.3 70B).
 Open `js/chat.js` and find this line near the top of `sendMessage()`:
 
 ```
 headers: { 'Content-Type': 'application/json' },
 ```
 
-Add your API key here (get one free at console.anthropic.com):
+Add your API key here :
 
 ```javascript
-headers: {
-  'Content-Type': 'application/json',
-  'x-api-key': 'sk-ant-YOUR-KEY-HERE',
-  'anthropic-version': '2023-06-01',
-  'anthropic-dangerous-direct-browser-access': 'true'
-},
-```
+
 
 Save the file, refresh the browser — chatbot will work.
 
