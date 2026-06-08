@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResumeIQ — NLP Resume Analyzer</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══════════════════════════════════════
+       HEADER
+  ═══════════════════════════════════════ -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">RQ</div>
+      <div>
+        <div class="logo-text">ResumeIQ</div>
+        <div class="logo-sub">NLP-powered career analyzer</div>
+      </div>
+    </div>
+    <div class="header-right">powered by TF-IDF · Cosine Similarity · Python + Groq AI</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       STEP INDICATOR
+  ═══════════════════════════════════════ -->
+  <div class="steps-bar" id="steps-bar">
+    <div class="step active" id="step1"><div class="step-num">1</div> Job Role</div>
+    <div class="step-arrow">›</div>
+    <div class="step" id="step2"><div class="step-num">2</div> Upload Resume</div>
+    <div class="step-arrow">›</div>
+    <div class="step" id="step3"><div class="step-num">3</div> Analysis</div>
+    <div class="step-arrow">›</div>
+    <div class="step" id="step4"><div class="step-num">4</div> AI Chat</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       MAIN LAYOUT
+  ═══════════════════════════════════════ -->
+  <div class="main">
+
+    <!-- Left scrollable panel -->
+    <div class="panel" id="main-panel">
+
+      <!-- ─── PHASE 1: Job Role ─── -->
+      <div class="phase active" id="phase1">
+        <div class="phase-center">
+          <div class="phase-title">What role are you targeting? 🎯</div>
+          <div class="phase-sub">
+            Tell us your dream job and we'll analyze how well your resume matches
+            using job descriptions and real-world skill data.
+          </div>
+          <div class="job-input-wrap">
+            <input class="job-input" id="job-input"
+              placeholder="e.g. Machine Learning Engineer, Product Manager..."
+              autocomplete="off" />
+          </div>
+          <div class="suggestions">
+            <div class="sug-chip" onclick="setJob(this)">ML Engineer</div>
+            <div class="sug-chip" onclick="setJob(this)">Data Scientist</div>
+            <div class="sug-chip" onclick="setJob(this)">Software Engineer</div>
+            <div class="sug-chip" onclick="setJob(this)">AI Researcher</div>
+            <div class="sug-chip" onclick="setJob(this)">Full Stack Developer</div>
+            <div class="sug-chip" onclick="setJob(this)">Product Manager</div>
+            <div class="sug-chip" onclick="setJob(this)">Data Analyst</div>
+          </div>
+          <button class="btn-primary" id="btn-next1" onclick="goPhase2()" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- ─── PHASE 2: Upload ─── -->
+      <div class="phase" id="phase2">
+        <div class="phase-center">
+          <div class="phase-title">Upload your resume 📄</div>
+          <div class="phase-sub">
+            We'll extract text, run TF-IDF vectorization, and compute cosine similarity
+            against <strong id="job-name-display2"></strong> job descriptions.
+          </div>
+
+          <div class="upload-zone" id="upload-zone"
+            onclick="document.getElementById('file-input').click()"
+            ondragover="event.preventDefault();this.classList.add('dragover')"
+            ondragleave="this.classList.remove('dragover')"
+            ondrop="handleDrop(event)">
+            <span class="upload-icon">⬆️</span>
+            <div class="upload-label">Drop your resume here or click to browse</div>
+            <div class="upload-hint">Supports .docx · .txt · .pdf (text) · Max 5MB</div>
+          </div>
+          <input type="file" id="file-input" accept=".docx,.txt,.doc,.pdf" onchange="handleFile(this)" />
+
+          <div class="file-info" id="file-info">
+            <span style="font-size:20px">📋</span>
+            <div>
+              <div class="file-info-name" id="file-name">—</div>
+              <div class="file-info-size" id="file-size">—</div>
+            </div>
+            <span style="margin-left:auto;font-size:18px">✅</span>
+          </div>
+
+          <!-- NLP pipeline explanation shown before analysis -->
+          <div class="nlp-info">
+            <div class="nlp-title">⚙️ NLP Pipeline being applied</div>
+            <div class="nlp-step">1. Text extraction → tokenization → stopword removal → stemming</div>
+            <div class="nlp-formula">tokens = [stem(w) for w in text.split() if w not in stopwords]</div>
+            <div class="nlp-step">2. TF-IDF vectorization of resume + job description corpus</div>
+            <div class="nlp-formula">TF-IDF(t,d) = TF(t,d) × log(N / df(t))</div>
+            <div class="nlp-step">3. Cosine similarity between resume vector and JD vector</div>
+            <div class="nlp-formula">similarity(A,B) = (A · B) / (‖A‖ × ‖B‖)</div>
+          </div>
+
+          <button class="btn-primary" id="btn-analyze" onclick="runAnalysis()" disabled>Analyze Resume →</button>
+        </div>
+      </div>
+
+      <!-- ─── PHASE 3: Analysis Results ─── -->
+      <div class="phase" id="phase3">
+        <div class="analysis-header">
+          <div class="job-tag">🎯 <span id="job-tag-name"></span></div>
+          <div class="analysis-title">Resume Match Analysis</div>
+          <div class="analysis-sub" id="filename-display"></div>
+        </div>
+
+        <!-- Score ring + breakdown -->
+        <div class="score-section">
+          <div class="score-card">
+            <div class="score-ring-wrap">
+              <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="60" cy="60" r="50" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+                <circle cx="60" cy="60" r="50" fill="none" id="score-circle"
+                  stroke="#4f46e5" stroke-width="10" stroke-linecap="round"
+                  stroke-dasharray="314" stroke-dashoffset="314"
+                  transform="rotate(-90 60 60)"/>
+              </svg>
+              <div class="score-num" id="score-display">0%</div>
+            </div>
+            <div class="score-label">Overall Match</div>
+            <div class="score-verdict" id="score-verdict">—</div>
+          </div>
+
+          <div class="breakdown">
+            <div class="breakdown-title">Score Breakdown</div>
+            <div class="bar-row">
+              <div class="bar-label"><span>Keyword Match (40%)</span><span class="bar-val" id="kw-score">0%</span></div>
+              <div class="bar-track"><div class="bar-fill" id="kw-bar" style="width:0%;background:#4f46e5"></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label"><span>TF-IDF Cosine Similarity (30%)</span><span class="bar-val" id="cos-score">0%</span></div>
+              <div class="bar-track"><div class="bar-fill" id="cos-bar" style="width:0%;background:#7c3aed"></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label"><span>Skills Coverage (20%)</span><span class="bar-val" id="sk-score">0%</span></div>
+              <div class="bar-track"><div class="bar-fill" id="sk-bar" style="width:0%;background:#059669"></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label"><span>Experience Relevance (10%)</span><span class="bar-val" id="exp-score">0%</span></div>
+              <div class="bar-track"><div class="bar-fill" id="exp-bar" style="width:0%;background:#d97706"></div></div>
+            </div>
+            <div class="formula-note">
+              Final Score = 0.4×KW + 0.3×Cosine + 0.2×Skills + 0.1×Experience
+            </div>
+          </div>
+        </div>
+
+        <!-- Keywords -->
+        <div class="result-section">
+          <div class="section-title">Keyword Analysis</div>
+          <div class="section-hint">Keywords extracted from the job description corpus via TF-IDF</div>
+          <div class="kw-grid" id="kw-grid"></div>
+        </div>
+
+        <!-- Web sources -->
+        <div class="result-section">
+          <div class="section-title">Web Sources Analyzed</div>
+          <div class="section-hint">Real job postings and resources used to build the job skill profile</div>
+          <div id="sources-list"></div>
+        </div>
+
+        <!-- Suggestions -->
+        <div class="result-section">
+          <div class="section-title">Improvement Suggestions</div>
+          <div id="improve-list"></div>
+        </div>
+
+        <!-- Activate chat -->
+        <button class="chat-activate" onclick="activateChat()">
+          <span>💬</span>
+          Chat with AI Career Advisor about your results
+          <span class="arrow">→</span>
+        </button>
+      </div>
+
+    </div><!-- end .panel -->
+
+    <!-- ─── CHAT SIDEBAR ─── -->
+    <div class="chat-panel hidden" id="chat-panel">
+      <div class="chat-header">
+        <div class="chat-avatar">✨</div>
+        <div>
+          <div class="chat-name">Career AI Advisor</div>
+          <div class="chat-status"><div class="status-dot"></div><span>Powered by Python + Groq AI</span></div>
+        </div>
+        <button class="chat-close" onclick="document.getElementById('chat-panel').classList.add('hidden')">✕</button>
+      </div>
+
+      <div class="chat-messages" id="chat-msgs"></div>
+
+      <div class="chat-input-wrap">
+        <div class="suggested-qs" id="suggested-qs"></div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="chat-input"
+            placeholder="Ask about your resume, skills, job fit..."
+            rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+          <button class="chat-send" id="send-btn" onclick="sendMessage()">➤</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .main -->
+</div><!-- end .app -->
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-title">Analyzing your resume...</div>
+  <ul class="loading-steps">
+    <li id="ls1">⏳ Extracting and tokenizing text</li>
+    <li id="ls2">⏳ Fetching job description profiles</li>
+    <li id="ls3">⏳ Computing TF-IDF vectors</li>
+    <li id="ls4">⏳ Calculating cosine similarity</li>
+    <li id="ls5">⏳ Generating improvement suggestions</li>
+  </ul>
+</div>
+
+<!-- Scripts -->
+<!-- ★ pdf.js and mammoth.js CDN removed — Python backend handles document extraction -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script> -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script> -->
+<script src="js/nlp.js"></script>   <!-- commented-out reference — Python handles NLP -->
+<script src="js/jobs.js"></script>  <!-- commented-out reference — Python handles jobs -->
+<script src="js/ui.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,854 @@
+═══════════════════════════════════════════════════════════════════════════
+              ResumeIQ — COMPLETE CONCEPTS & TECHNICAL REFERENCE
+              Everything your teacher can ask. Every formula. Every file.
+═══════════════════════════════════════════════════════════════════════════
+
+Author   : Stuti Jain (CS + AI/ML, UPES Dehradun)
+Project  : ResumeIQ — NLP-Powered Resume Analyzer + AI Chatbot
+Stack    : Python Backend (Flask) · Vanilla HTML/CSS/JS + Groq AI API
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TABLE OF CONTENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1.  PROJECT OVERVIEW
+  2.  FILE STRUCTURE
+  3.  TOOL VERSIONS USED
+  4.  NLP PIPELINE — STEP BY STEP
+  5.  NLP CONCEPT 1 — TOKENIZATION
+  6.  NLP CONCEPT 2 — STOPWORD REMOVAL
+  7.  NLP CONCEPT 3 — STEMMING
+  8.  NLP CONCEPT 4 — TF-IDF (with full formula derivation)
+  9.  NLP CONCEPT 5 — COSINE SIMILARITY (with full formula derivation)
+  10. NLP CONCEPT 6 — KEYWORD OVERLAP (SET INTERSECTION)
+  11. SCORING FORMULA — WEIGHTED COMPOSITE
+  12. AI / LLM INTEGRATION — HOW GROQ WORKS
+  13. FRONTEND CONCEPTS
+  14. FORMULA QUICK-REFERENCE (one page summary)
+  15. WHERE EACH FORMULA APPEARS IN CODE
+  16. MACHINE LEARNING PIPELINE (ml_pipeline.py)
+  17. COMMON TEACHER QUESTIONS + ANSWERS
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. PROJECT OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ResumeIQ is a browser-based application that:
+
+  Phase 1 — Takes a job role as input from the user.
+  Phase 2 — Accepts a resume upload (.txt / .docx / .pdf).
+  Phase 3 — Runs an NLP pipeline to compute a match percentage.
+  Phase 4 — Activates an AI chatbot (Groq) for career advice.
+
+The system answers the question:
+  "How well does this resume match the requirements of this job role?"
+
+It does this using six NLP techniques implemented from scratch in Python
+(with no external NLP libraries like NLTK or spaCy):
+  (a) Tokenization
+  (b) Stopword removal
+  (c) Stemming
+  (d) TF-IDF vectorization
+  (e) Cosine similarity
+  (f) Keyword overlap (set intersection)
+
+The final score is a weighted combination of multiple sub-scores.
+An LLM (Groq / Llama 3.3) is then used for conversational Q&A.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  resumeiq/
+  ├── backend/
+  │   ├── server.py       Flask server (API and static files)
+  │   ├── nlp_engine.py   ★ ALL NLP MATH FUNCTIONS (core engine)
+  │   ├── job_profiles.py Job description profiles
+  │   ├── doc_extractor.py PDF/DOCX text extraction
+  │   ├── chat_handler.py Groq API integration — chatbot logic
+  │   └── ml_pipeline.py  Advanced ML features (scikit-learn fallback)
+  ├── index.html          Main HTML — structure, phases, chat UI
+  ├── css/
+  │   └── style.css       All visual styles, colors, layout, animations
+  ├── js/
+  │   ├── ui.js           DOM rendering — charts, chips, suggestions
+  │   ├── chat.js         Chatbot UI logic
+  │   └── app.js          Main frontend controller
+  └── docs/
+      └── concepts.txt    ← THIS FILE
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. TOOLS AND TECHNOLOGIES USED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  HTML5
+    → Used for structuring the entire UI.
+    → Key tags: <div>, <input type="file">, <textarea>, <canvas>, <svg>.
+    → ondragover, ondrop — Drag-and-drop file upload.
+
+  CSS3
+    → All visual design: colors, typography, animations, layout.
+    → CSS Variables (--accent, --surface, etc.) for a consistent theme.
+    → Flexbox and Grid for responsive layout.
+    → @keyframes for spinner and progress animations.
+    → Google Fonts: "Sora" (body), "JetBrains Mono" (code/formulas).
+
+  Python Backend (Flask)
+    → server.py: Main entry point serving frontend and API.
+    → All NLP logic implemented from scratch in python (nlp_engine.py).
+    → doc_extractor.py: Uses PyPDF2 and python-docx for text extraction.
+    → Python Sets and Dicts for vector operations.
+
+  JavaScript (ES6+)
+    → Frontend logic and UI updates.
+    → Fetch API — HTTP POST to Python backend (/api/analyze, /api/chat).
+    → SVG stroke-dashoffset animation — animated score ring.
+
+  Groq API (Llama 3.3)
+    → Model: llama-3.3-70b-versatile
+    → Used for the Phase 4 chatbot and suggestions.
+    → Context injection: resume scores are injected into the system prompt.
+
+  Google Fonts CDN
+    → Sora — clean sans-serif for UI text.
+    → JetBrains Mono — monospaced font for formulas and code display.
+
+  No external NLP library is used for the core engine.
+  All six NLP algorithms are implemented from scratch in backend/nlp_engine.py.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. NLP PIPELINE — STEP BY STEP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Raw Resume Text
+      │
+      ▼
+  [STEP 1] Tokenization — split into words
+      │
+      ▼
+  [STEP 2] Stopword Removal — drop "the", "is", "and", etc.
+      │
+      ▼
+  [STEP 3] Stemming — reduce "learning" → "learn"
+      │
+      ▼  (also runs same pipeline on Job Description text)
+      │
+      ▼
+  [STEP 4] TF-IDF Vectorization — convert both texts to numerical vectors
+      │
+      ▼
+  [STEP 5] Cosine Similarity — measure angle between the two vectors
+      │
+      ▼
+  [STEP 6] Keyword Overlap — direct set-intersection count
+      │
+      ▼
+  [STEP 7] Weighted Score — final match percentage
+      │
+      ▼
+  Groq API — context-aware chatbot conversation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. NLP CONCEPT 1 — TOKENIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEFINITION:
+  Tokenization is the process of breaking a string of text into individual
+  meaningful units called "tokens". Tokens are usually words.
+
+WHY WE NEED IT:
+  Computers cannot understand raw sentences. They need text split into
+  discrete units before any mathematical processing can happen.
+
+OUR APPROACH:
+  Word-level tokenization (as opposed to character-level or sentence-level).
+
+STEPS IN OUR CODE:
+  a) Convert to lowercase → "Machine Learning" becomes "machine learning"
+  b) Remove punctuation/special chars (keep + and # for "C++" and "C#")
+  c) Split on whitespace
+  d) Remove tokens shorter than 3 characters (removes "of", "is", "a"
+     that might slip through stopword removal)
+
+CODE LOCATION:
+  File: js/nlp.js
+  Function: tokenize(text)
+  Lines: ~47–57
+
+PSEUDOCODE:
+  function tokenize(text):
+    text = lowercase(text)
+    text = remove_special_chars(text)
+    words = split(text, whitespace)
+    words = filter(words, length > 2 AND not in stopwords)
+    return words
+
+EXAMPLE:
+  Input:  "I built Machine Learning models using TensorFlow in Python"
+  Output: ['built', 'machine', 'learning', 'models', 'using',
+           'tensorflow', 'python']
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. NLP CONCEPT 2 — STOPWORD REMOVAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEFINITION:
+  Stopwords are common English words that appear in almost every document
+  and carry no discriminating information.
+
+WHY WE REMOVE THEM:
+  Words like "the", "is", "and", "of" would get very high frequency scores
+  but tell us nothing about whether a resume matches a job. Removing them
+  makes the TF-IDF and similarity calculations more meaningful.
+
+EXAMPLES OF STOPWORDS:
+  "i", "me", "the", "a", "an", "is", "are", "was", "be", "have",
+  "do", "not", "if", "or", "and", "but", "with", "at", "by", "to",
+  "from", "of", "in", "on", "as", "will", "can", "just", "so", "all"
+
+CODE LOCATION:
+  File: js/nlp.js
+  Variable: STOP_WORDS (JavaScript Set)
+  Lines: ~17–43
+  Used in: tokenize() function
+
+HOW IT WORKS:
+  We store all stopwords in a JavaScript Set for O(1) lookup:
+    const STOP_WORDS = new Set(['i', 'me', 'my', ... ])
+
+  Then filter:
+    words.filter(w => !STOP_WORDS.has(w))
+
+WHY USE A SET?
+  Looking up a word in an array takes O(n) time.
+  Looking up a word in a Set takes O(1) time (hash-based).
+  For large documents, this is significantly faster.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. NLP CONCEPT 3 — STEMMING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEFINITION:
+  Stemming reduces a word to its base or root form by removing common
+  suffixes. This lets different forms of the same word be treated as one.
+
+WHY WE NEED IT:
+  "learn", "learning", "learned", "learns" all mean the same concept.
+  Without stemming, TF-IDF treats them as four separate, unrelated terms.
+  With stemming, they all map to "learn" and are counted together.
+
+OUR ALGORITHM:
+  Simplified Porter Stemmer — a rule-based suffix-stripping algorithm.
+  (The full Porter Stemmer has 5 phases; we implement the most common rules.)
+
+REFERENCE: M.F. Porter, "An Algorithm for Suffix Stripping", 1980.
+  https://tartarus.org/martin/PorterStemmer/
+
+RULES WE APPLY (in order):
+  "-inging"  → ""         (programming → programm)
+  "-ing"     → ""         (learning  → learn)
+  "-tions"   → ""         (classifications → classif)
+  "-tion"    → ""         (classification → classif)
+  "-ies"     → "y"        (libraries → library)
+  "-es"      → ""         (manages → manag)
+  "-s"       → ""         (models → model)
+  "-er"      → ""         (analyzer → analyz)
+  "-ed"      → ""         (trained → train)
+
+EXAMPLES:
+  "learning"       → "learn"
+  "deployment"     → deployment (no suffix match → unchanged)
+  "libraries"      → "librari" → "library" (ies→y rule)
+  "classifications" → "classif"
+  "trained"        → "train"
+
+CODE LOCATION:
+  File: js/nlp.js
+  Function: stem(word)
+  Lines: ~73–89
+
+LIMITATION:
+  Stemming can over-stem ("university" → "univers") or under-stem.
+  The alternative is Lemmatization (uses a dictionary, e.g. "better" → "good").
+  Lemmatization is more accurate but requires a large vocabulary lookup table.
+  We chose stemming because it runs entirely client-side in JavaScript.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. NLP CONCEPT 4 — TF-IDF
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FULL NAME: Term Frequency — Inverse Document Frequency
+
+INVENTED BY: Karen Spärck Jones, 1972 (IDF); extended by Robertson, 1976.
+
+WHAT IT IS:
+  A numerical statistic that measures how important a word is in a document
+  relative to a collection of documents (called a corpus).
+
+WHY NOT JUST COUNT WORDS?
+  If we count raw frequency, common words like "the" and "is" will always
+  dominate even after stopword removal. TF-IDF penalises words that appear
+  in many documents and rewards words that are specific to a particular doc.
+
+─────────────────────────────────────────
+PART A — TERM FREQUENCY (TF)
+─────────────────────────────────────────
+
+DEFINITION:
+  How often does term t appear in document d, normalised by document length?
+
+FORMULA:
+            count(t in d)
+  TF(t,d) = ─────────────
+            total_tokens(d)
+
+WHERE:
+  count(t in d)   = number of times word t appears in document d
+  total_tokens(d) = total number of words in document d (after tokenization)
+
+EXAMPLE:
+  Document: "python python java python ml"  (5 tokens)
+  TF("python", doc) = 3/5 = 0.6
+  TF("java",   doc) = 1/5 = 0.2
+  TF("ml",     doc) = 1/5 = 0.2
+
+WHY NORMALISE?
+  Without normalisation, a longer document would always get higher TF
+  just because it has more words — even if "python" appears at the same
+  density. Dividing by document length makes TF comparable across docs.
+
+─────────────────────────────────────────
+PART B — INVERSE DOCUMENT FREQUENCY (IDF)
+─────────────────────────────────────────
+
+DEFINITION:
+  How rare is term t across the entire corpus (all documents)?
+
+FORMULA:
+                 N
+  IDF(t) = log( ─── )
+                df(t)
+
+WHERE:
+  N     = total number of documents in the corpus
+  df(t) = number of documents that contain the term t
+  log   = natural logarithm (or log base 2 or base 10 — choice affects scale)
+
+INTUITION:
+  - If a word appears in all N documents, IDF = log(N/N) = log(1) = 0
+    → this word gets zero weight (it's useless for discrimination)
+  - If a word appears in only 1 of N documents, IDF = log(N/1) = log(N)
+    → this word gets maximum weight (it's highly specific)
+
+EXAMPLE (corpus of 2 documents):
+  N = 2
+  "python" appears in both docs → df = 2 → IDF = log(2/2) = log(1) = 0
+  "pytorch" appears in 1 doc   → df = 1 → IDF = log(2/1) = log(2) ≈ 0.693
+
+─────────────────────────────────────────
+PART C — TF-IDF COMBINED
+─────────────────────────────────────────
+
+FORMULA:
+  TF-IDF(t, d) = TF(t, d) × IDF(t)
+               = [count(t,d) / total(d)]  ×  log(N / df(t))
+
+FULL EXAMPLE:
+  Corpus: [resume_doc, jd_doc]   (N=2)
+  Term: "tensorflow"
+  resume_doc: 2 occurrences out of 50 tokens → TF = 2/50 = 0.04
+  df("tensorflow") = 1 (only in resume)       → IDF = log(2/1) = 0.693
+  TF-IDF = 0.04 × 0.693 = 0.0277
+
+RESULT:
+  Each document becomes a vector where each dimension is a term's TF-IDF weight.
+  resume_vector = {"tensorflow": 0.0277, "python": 0.01, "ml": 0.05, ...}
+  jd_vector     = {"pytorch": 0.03, "python": 0.008, "docker": 0.04, ...}
+
+CODE LOCATION:
+  File: js/nlp.js
+  Function: buildTFIDF(docs)
+  Lines: ~96–130
+
+WHAT IT RETURNS:
+  An array of vector objects, one per document:
+  [resumeVec, jdVec]
+  where resumeVec = { stemmedTerm: tfidfWeight, ... }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. NLP CONCEPT 5 — COSINE SIMILARITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEFINITION:
+  Cosine similarity measures the cosine of the angle between two vectors
+  in a multi-dimensional space. It tells us how "similar" two documents
+  are based on their TF-IDF representations.
+
+FORMULA:
+                    A · B
+  similarity(A,B) = ─────────────
+                    ‖A‖  ×  ‖B‖
+
+WHERE:
+  A · B  = dot product  = Σᵢ (Aᵢ × Bᵢ)
+  ‖A‖    = L2 norm of A = √(Σᵢ Aᵢ²)
+  ‖B‖    = L2 norm of B = √(Σᵢ Bᵢ²)
+
+EXPANDED FORM:
+                     Σᵢ (Aᵢ × Bᵢ)
+  similarity(A,B) = ─────────────────────────────
+                    √(Σᵢ Aᵢ²)  ×  √(Σᵢ Bᵢ²)
+
+OUTPUT RANGE:
+  0   → vectors are perpendicular (no shared vocabulary)
+  0.5 → 60° angle (moderate overlap)
+  1   → vectors are identical (perfect match)
+
+WHY COSINE INSTEAD OF EUCLIDEAN DISTANCE?
+  Euclidean: d = √(Σ(Aᵢ - Bᵢ)²)
+  Problem: a 200-word resume vs a 2000-word job description would show
+  huge Euclidean distance just because of length differences, even if the
+  vocabulary is identical.
+
+  Cosine similarity is LENGTH-INVARIANT — it only measures the direction
+  (angle) of the vectors, not their magnitude. A short resume and a long
+  JD can still score 1.0 if they use the same vocabulary proportionally.
+
+SIMPLE 2D EXAMPLE:
+  Resume vector: [3, 1]    (3 mentions of "python", 1 of "docker")
+  JD vector:     [6, 2]    (same ratio, just scaled up)
+  
+  Dot product:  3×6 + 1×2 = 20
+  ‖A‖ = √(3² + 1²) = √10 ≈ 3.16
+  ‖B‖ = √(6² + 2²) = √40 ≈ 6.32
+  cos = 20 / (3.16 × 6.32) = 20/20 = 1.0  → PERFECT MATCH
+  (Even though the absolute counts differ, the proportions are the same)
+
+ANGLE INTUITION:
+  θ = 0°   → cos(0°) = 1.0  → identical documents
+  θ = 45°  → cos(45°) ≈ 0.7 → moderately similar
+  θ = 90°  → cos(90°) = 0.0 → completely different vocabulary
+
+CODE LOCATION:
+  File: js/nlp.js
+  Function: cosineSim(a, b)
+  Lines: ~148–170
+
+HOW WE SCALE IT:
+  In app.js, raw cosine similarity (0 to ~0.45 for typical resume vs JD)
+  is scaled to 0–100 by multiplying by 220:
+    cosPct = Math.min(100, Math.round(rawCos × 220))
+  This is a calibration step because raw TF-IDF cosine similarity between
+  a resume and a generic JD rarely exceeds 0.45.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. NLP CONCEPT 6 — KEYWORD OVERLAP (SET INTERSECTION)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEFINITION:
+  A simpler, binary measure of similarity. We ask: "What fraction of the
+  job description keywords also appear in the resume?"
+
+FORMULA:
+                          |resume_terms ∩ jd_terms|
+  overlap_score =  ─────────────────────────────────
+                                |jd_terms|
+
+WHERE:
+  ∩          = set intersection (words in BOTH sets)
+  |jd_terms| = total unique terms in the job description
+
+OUTPUT RANGE: 0 to 1
+
+EXAMPLE:
+  resume terms: {python, tensorflow, sql, git, docker}
+  JD terms:     {python, pytorch, sql, aws, docker, kubernetes}
+
+  Intersection = {python, sql, docker}  → size 3
+  |JD terms|   = 6
+  overlap_score = 3/6 = 0.5 = 50%
+
+DIFFERENCE FROM COSINE SIMILARITY:
+  Keyword overlap treats every keyword equally (1 if present, 0 if not).
+  Cosine similarity weights terms by their TF-IDF importance.
+  Both are needed: keyword overlap catches direct ATS-style matches,
+  while cosine similarity captures conceptual/topical similarity.
+
+WHY STEMS NOT EXACT WORDS?
+  We stem both sets before computing the intersection so that:
+  "training" in resume matches "trained" in JD (both → "train")
+
+CODE LOCATION:
+  File: js/nlp.js
+  Function: keywordOverlap(resumeTokens, jdTokens)
+  Lines: ~186–202
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+11. SCORING FORMULA — WEIGHTED COMPOSITE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PURPOSE:
+  Combine four sub-scores into one final match percentage.
+
+FORMULA:
+  FinalScore = (0.4 × KW) + (0.3 × Cosine) + (0.2 × Skills) + (0.1 × Exp)
+
+WHERE:
+  KW     = Keyword Overlap score (0–100)         — Set intersection / ATS check
+  Cosine = TF-IDF Cosine Similarity (0–100)      — Semantic similarity
+  Skills = Skills Coverage score (0–100)          — Canonical skill list overlap
+  Exp    = Experience Relevance score (0–100)     — Heuristic (action verbs count)
+
+WEIGHT RATIONALE:
+  0.4 (40%) → Keywords: Highest weight because ATS systems filter resumes
+               by keyword presence before a human reads them.
+  0.3 (30%) → Cosine:   Second highest — captures conceptual similarity,
+               penalises resumes that keyword-stuff but aren't truly relevant.
+  0.2 (20%) → Skills:   Checks against a curated list of must-have skills
+               for the role.
+  0.1 (10%) → Experience: Heuristic signal — counts action verbs like
+               "built", "deployed", "led", "designed".
+  ────────
+  1.0 (100%) total weight
+
+INTERPRETATION:
+  80–100% → Strong match. Apply confidently.
+  60–79%  → Moderate match. Add some keywords and skills.
+  40–59%  → Weak match. Significant gaps to address.
+  0–39%   → Poor match. Consider whether this role fits.
+
+CODE LOCATION:
+  File: js/app.js
+  Function: runAnalysis()
+  Lines: ~120–130
+
+EXAMPLE:
+  KW = 55, Cosine = 62, Skills = 70, Exp = 60
+  Final = 0.4×55 + 0.3×62 + 0.2×70 + 0.1×60
+        = 22 + 18.6 + 14 + 6
+        = 60.6%  → "Moderate Match"
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+12. AI / LLM INTEGRATION — HOW GROQ WORKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WHAT IS AN LLM?
+  Large Language Model — a neural network trained on massive text corpora
+  to predict the next token (word fragment). Examples: GPT-4, Gemini, Claude.
+  They can generate human-like responses to arbitrary questions.
+
+WHAT IS CLAUDE/GROQ?
+  We use the Groq API for ultra-fast inference of open-source models.
+  Specifically, we use Meta's "llama-3.3-70b-versatile", which is a fast,
+  highly intelligent model suitable for conversational tasks.
+
+HOW WE USE IT:
+  We use the official python `groq` library in our backend (`chat_handler.py`).
+
+API ENDPOINT:
+  The Python server communicates with Groq via the SDK.
+  Frontend calls our backend at POST /api/chat.
+
+REQUEST BODY (JSON from Frontend):
+  {
+    "systemContext": "<analysis context injected here>",
+    "messages":   [ { "role": "user", "content": "..." }, ... ]
+  }
+
+SYSTEM PROMPT (context injection):
+  Before the user's first message, we inject the full analysis results:
+    "The user has uploaded their resume for ML Engineer.
+     Overall match: 67%. Keyword score: 55%. Missing skills: PyTorch, Docker..."
+  This makes the AI's advice specific to the user's actual data, not generic.
+
+CONVERSATION HISTORY:
+  Every request sends the last 16 messages (user + assistant alternating).
+  This gives the AI "memory" of the conversation — it knows what was said.
+
+RESPONSE STRUCTURE (from backend to frontend):
+  {
+    "candidates": [ { "content": { "parts": [ { "text": "AI response here..." } ] } } ]
+  }
+
+CODE LOCATION:
+  File: backend/chat_handler.py
+  Function: chat_with_groq(system_prompt, message_history)
+  File: js/chat.js (frontend client)
+
+MULTI-TURN CONVERSATION:
+  We maintain an array `chatHistory = [{role, content}, ...]` on the frontend.
+  Each user message → push to array → send full array to Python API.
+  Each AI response → push to array → included in next request.
+  This is called "context accumulation" — standard for LLM chatbots.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+13. FRONTEND CONCEPTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SINGLE PAGE APPLICATION (SPA) PATTERN:
+  All four phases live in one HTML file. We show/hide <div> sections
+  using CSS (display: none vs display: block).
+  No page reload — faster and smoother user experience.
+
+FILE UPLOAD:
+  Files are captured in the browser and sent via `FormData` to
+  the Python backend using `POST /api/analyze`.
+
+DOCX & PDF EXTRACTION (Now on Python Backend):
+  .docx files: Parsed using `python-docx` in `doc_extractor.py`.
+  .pdf files: Parsed using `PyPDF2` in `doc_extractor.py`.
+  This server-side extraction is far more robust than attempting
+  in-browser parsing with JS libraries.
+
+SVG ANIMATION (Score Ring):
+  The circular score ring uses SVG (Scalable Vector Graphics).
+  Key technique: stroke-dasharray and stroke-dashoffset.
+    stroke-dasharray = 314   (circumference of circle, 2π×50 ≈ 314)
+    stroke-dashoffset = 314 × (1 - score/100)
+  Setting dashoffset to 0 draws the full circle.
+  Setting it to 314 shows nothing (empty ring).
+  We animate from 314 → target offset using CSS transition.
+
+DRAG AND DROP (HTML5 Drag & Drop API):
+  ondragover — fires while dragging over element; preventDefault() allows drop
+  ondrop — fires when file is released; ev.dataTransfer.files[0] gets the file
+
+ASYNC / AWAIT:
+  Claude API calls are asynchronous — the browser doesn't freeze while waiting.
+  We use async/await (syntactic sugar over Promises) for clean code.
+
+CSS CUSTOM PROPERTIES (Variables):
+  --accent: #4f46e5 defined once in :root { }
+  Used as color: var(--accent) everywhere.
+  Easy to theme: change one variable → whole app changes.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+14. FORMULA QUICK-REFERENCE (ONE-PAGE SUMMARY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  TOKENIZATION:
+    tokens = [stem(w) for w in text.lower().split() if len(w)>2 and w not in stopwords]
+
+  STEMMING (Porter-simplified):
+    remove("-ing", "-tion", "-ies"→"y", "-es", "-s", "-er", "-ed") from word suffix
+
+  TERM FREQUENCY:
+                count(t in d)
+    TF(t,d)  = ─────────────────
+                total_tokens(d)
+
+  INVERSE DOCUMENT FREQUENCY:
+                      N
+    IDF(t)   = log( ─────── )
+                    df(t)
+
+  TF-IDF:
+    TF-IDF(t,d) = TF(t,d) × IDF(t)
+
+  COSINE SIMILARITY:
+                        A · B               Σᵢ(Aᵢ × Bᵢ)
+    cos(A,B)  = ─────────────────── = ──────────────────────────
+                  ‖A‖  ×  ‖B‖          √(ΣAᵢ²) × √(ΣBᵢ²)
+
+  KEYWORD OVERLAP:
+                     |resume_terms ∩ jd_terms|
+    overlap  = ──────────────────────────────────
+                        |jd_terms|
+
+  WEIGHTED FINAL SCORE:
+    Score = 0.4 × KW + 0.3 × Cosine + 0.2 × Skills + 0.1 × Experience
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+15. WHERE EACH FORMULA APPEARS IN THE CODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌──────────────────────┬───────────────┬──────────────┬──────────────────────────────────────────┐
+  │ Concept              │ File          │ Function     │ Key lines                                │
+  ├──────────────────────┼───────────────┼──────────────┼──────────────────────────────────────────┤
+  │ Stopwords list       │ nlp_engine.py │ STOP_WORDS   │ STOP_WORDS = frozenset([...])            │
+  │ Tokenization         │ nlp_engine.py │ tokenize()   │ .lower().split() + filter                │
+  │ Stemming             │ nlp_engine.py │ stem()       │ re.sub(r'ing$', '', word)                │
+  │ Term Frequency (TF)  │ nlp_engine.py │ build_tfidf()│ tf[t] / total_tokens                     │
+  │ IDF                  │ nlp_engine.py │ build_tfidf()│ math.log(N / df[t])                      │
+  │ TF-IDF combined      │ nlp_engine.py │ build_tfidf()│ vec[t] = term_freq * inv_doc_freq        │
+  │ Dot product          │ nlp_engine.py │ cosine_sim() │ dot += va * vb                           │
+  │ L2 norm              │ nlp_engine.py │ cosine_sim() │ norm_a += va*va; math.sqrt(norm_a)       │
+  │ Cosine similarity    │ nlp_engine.py │ cosine_sim() │ return dot / (math.sqrt(a) * sqrt(b))    │
+  │ Keyword overlap      │ nlp_engine.py │ keyword_overlap()│ [k for k in jd if k in res_stem_set] │
+  │ Overlap score        │ nlp_engine.py │ keyword_overlap()│ len(matched) / len(jd_stem_set)      │
+  │ Weighted score       │ nlp_engine.py │ run_nlp_pipeline()│ 0.4*kw + 0.3*cos + 0.2*sk + 0.1*exp│
+  │ Cosine scaling       │ nlp_engine.py │ run_nlp_pipeline()│ min(100, round(raw_cos * 220))     │
+  │ System context build │ chat_handler.py│ build_system_context()│ f-string with scores           │
+  │ Groq API call        │ chat_handler.py│ chat_with_groq()│ groq_client.chat.completions.create()│
+  │ Job profiles corpus  │ job_profiles.py│ JOB_PROFILES │ description, skills, sources            │
+  │ Job matching         │ job_profiles.py│ get_job_profile()│ key in j or j in key                │
+  │ Score ring SVG       │ js/ui.js      │ renderAnalysis()│ stroke-dashoffset = 314*(1-pct/100) │
+  │ Bar animation        │ js/ui.js      │ renderAnalysis()│ bar.style.width = val + '%'         │
+  │ Keyword chips        │ js/ui.js      │ renderKeywords()│ matchedSet.has(stem(kw))            │
+  │ File extraction TXT  │ doc_extractor.py│ extract_text()│ file_bytes.decode('utf-8')            │
+  │ File extraction DOCX │ doc_extractor.py│ extract_text()│ docx.Document(io.BytesIO(file_bytes)) │
+  │ File extraction PDF  │ doc_extractor.py│ extract_text()│ PyPDF2.PdfReader(io.BytesIO(...))     │
+  └──────────────────────┴───────────────┴──────────────┴──────────────────────────────────────────┘
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+16. MACHINE LEARNING PIPELINE (ml_pipeline.py)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+While our core engine (nlp_engine.py) implements algorithms from scratch
+for educational purposes, we also provide a production-grade ML pipeline
+using scikit-learn and NLTK.
+
+WHY USE SCIKIT-LEARN?
+  1. Performance: Uses sparse matrices and highly optimized C++ under the hood.
+  2. N-grams: Can recognize "machine learning" as a single bigram entity
+     rather than two separate words.
+  3. Sublinear TF: Replaces raw frequency with `1 + log(tf)` to prevent
+     keyword stuffing from dominating the score.
+  4. Advanced Stopwords: Uses comprehensive built-in lists.
+
+FUNCTIONS IMPLEMENTED:
+  1. sklearn_tfidf_analysis(resume_text, jd_text)
+     - Uses `TfidfVectorizer` to compute the TF-IDF matrix.
+     - Computes `cosine_similarity` using sklearn's optimized pairwise metrics.
+     - Identifies matched keywords and missing keywords automatically.
+  
+  2. nltk_preprocess(text)
+     - Uses `word_tokenize` and `WordNetLemmatizer` for dictionary-based
+       lemmatization (e.g., "running" -> "run", "better" -> "good").
+     - More accurate than rule-based stemming.
+
+  3. extract_features(resume, jd)
+     - Extracts numerical features (e.g., cosine similarity, token length,
+       action verb count, unique token ratio) to prepare data for training
+       a supervised regression model (like RandomForestRegressor).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+17. COMMON TEACHER QUESTIONS + ANSWERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Q1: Why use TF-IDF instead of just counting word frequency?
+A:  Raw frequency over-weights common words even after stopword removal.
+    TF-IDF penalises words that appear in many documents (IDF part) and
+    rewards words specific to a document (TF part). It surfaces truly
+    meaningful keywords rather than just frequent ones.
+
+Q2: What is the range of cosine similarity? What does 0 and 1 mean?
+A:  0 means the two vectors are orthogonal — no shared vocabulary at all.
+    1 means the two vectors are identical — same word distribution.
+    For a resume vs job description, typical similarity is 0.1–0.45,
+    which is why we scale by 220 to produce a 0–100 percentage.
+
+Q3: Why cosine similarity and not Euclidean distance?
+A:  Euclidean distance penalises documents of different lengths because
+    longer documents have larger magnitude vectors. A 500-word resume
+    and a 2000-word JD would appear very different even if they cover
+    the exact same topics. Cosine only measures the angle (direction),
+    not the magnitude, making it length-invariant.
+
+Q4: What is the IDF formula's purpose?
+A:  IDF = log(N / df(t)). If a word appears in all N documents, df(t)=N,
+    so IDF = log(1) = 0 → the word is meaningless (like "the" or "work").
+    If a word appears in only 1 document, IDF = log(N) → high weight.
+    The logarithm dampens the effect so extremely rare words don't
+    dominate over moderately rare words.
+
+Q5: What is stemming? How is it different from lemmatization?
+A:  Stemming: Rule-based suffix removal. Fast but can produce non-words.
+    "running" → "run", "argues" → "argu" (crude but fast).
+    Lemmatization: Dictionary-based. "running" → "run", "better" → "good".
+    More accurate but requires a large vocabulary lookup table.
+    We use stemming because it runs entirely in the browser without
+    any external dictionary.
+
+Q6: Why is keyword overlap computed separately from cosine similarity?
+A:  Cosine similarity captures the overall topical similarity (weighted).
+    Keyword overlap is a binary ATS-style check — it answers:
+    "Does this exact skill keyword appear anywhere in the resume?"
+    Many companies use Applicant Tracking Systems that do simple keyword
+    matching. We model both types of scoring.
+
+Q7: How does the chatbot "know" about the resume analysis?
+A:  We inject the analysis results (scores, matched keywords, job role,
+    resume snippet) into the AI API's system prompt before the user's
+    first message. The AI reads this context and uses it to give specific
+    advice rather than generic tips.
+
+Q8: What is max_tokens in the Groq API call?
+A:  It limits how long the AI's response can be. 1 token ≈ 0.75 words.
+    max_tokens: 1000 allows approximately 750 words per response.
+
+Q9: How does the multi-turn conversation work?
+A:  We maintain a JavaScript array `chatHistory`. Every user message is
+    appended and every AI response is appended. The full array is sent
+    with every API call so the AI has "memory" of the conversation.
+    We limit to the last 16 messages to stay within the context window.
+
+Q10: Why weights 0.4, 0.3, 0.2, 0.1 for the final score?
+A:   Keywords get 40% because ATS systems filter primarily on keyword
+     matches — it's the most critical for getting past automated screening.
+     Cosine (30%) captures holistic relevance. Skills coverage (20%)
+     checks against the canonical must-have list. Experience (10%) is
+     a heuristic signal and less reliable, so lowest weight.
+
+Q11: What is a TF-IDF vector?
+A:   A vector (list of numbers) where each dimension represents a unique
+     term and the value is that term's TF-IDF score in the document.
+     If vocabulary = {python: 0, java: 1, sql: 2}, then a document
+     with python=0.3, java=0.1, sql=0 is represented as [0.3, 0.1, 0.0].
+     These vectors live in a high-dimensional space (one dimension per
+     unique word in the vocabulary).
+
+Q12: Why does the project not use an NLP library like NLTK or spaCy for the core engine?
+A:   We wanted to build the mathematical foundations of TF-IDF, Stemming,
+     and Cosine Similarity entirely from scratch to demonstrate understanding.
+     All six NLP algorithms are implemented from scratch in backend/nlp_engine.py.
+     (Note: A production-grade pipeline using scikit-learn is also available
+     in backend/ml_pipeline.py as an advanced fallback).
+
+Q13: What is a corpus in NLP?
+A:   A corpus is a collection of documents. In our project, the corpus
+     consists of two documents: the resume and the job description.
+     N (number of documents) = 2 in our implementation.
+     In a production system, the corpus would include hundreds of real
+     job postings scraped from LinkedIn, Indeed, etc.
+
+Q14: What does the stem() function do to "classification"?
+A:   Step 1: word = "classification"
+     Apply "-tions" rule? No (ends in -tion not -tions)
+     Apply "-tion" rule? Yes → "classif"
+     Final: "classif"
+     This means "classification" and "classifications" both stem to "classif"
+     and are treated as the same term.
+
+Q15: How does the SVG score ring animation work?
+A:   The circle has circumference = 2π×r = 2π×50 ≈ 314.
+     stroke-dasharray = 314 (one full dash = full circumference)
+     stroke-dashoffset = 314 × (1 - score/100)
+     At score=0:   offset=314 → nothing visible (fully offset)
+     At score=100: offset=0   → full circle visible
+     At score=67:  offset=314×0.33≈104 → 67% of circle drawn
+     CSS transition: stroke-dashoffset 1.2s ease → smooth animation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+END OF CONCEPTS DOCUMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Project: ResumeIQ | Developer: Stuti Jain | UPES Dehradun

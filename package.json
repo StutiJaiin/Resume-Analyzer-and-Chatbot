@@ -1,0 +1,21 @@
+{
+  "name": "resumeiq",
+  "version": "1.0.0",
+  "description": "1. Unzip `resumeiq.zip` 2. Open the `resumeiq/` folder 3. Double-click `index.html`    → Opens directly in Chrome or Edge (no server needed)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
