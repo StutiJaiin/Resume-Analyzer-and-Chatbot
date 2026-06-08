@@ -16,12 +16,7 @@ Open `js/chat.js` and find this line near the top of `sendMessage()`:
 headers: { 'Content-Type': 'application/json' },
 ```
 
-Add your API key here :
-
-```javascript
-
-
-Save the file, refresh the browser — chatbot will work.
+Add the API Key, Save the file, refresh the browser — chatbot will work.
 
 ## Testing Without a Real Resume
 
